@@ -1,10 +1,21 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { navLinks } from '../data/mockData';
+import SearchOverlay from './SearchOverlay';
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const activePath = location.pathname;
+
+  const iconButtonClass = (isActive: boolean) =>
+    `p-1 transition-all duration-200 ease-out ${isActive ? 'text-[#111] scale-110' : 'text-charcoal hover:text-[#111] hover:scale-[1.08]'} transform`;
+
+  const activeStroke = (isActive: boolean) => (isActive ? 'stroke-[1.4]' : 'stroke-[1.2]');
 
   useEffect(() => {
     const handleScroll = () => {
@@ -14,9 +25,10 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Lock body scroll when menu is open (preserve scroll position)
+  // Lock body scroll when menu or search overlay is open (preserve scroll position)
   useEffect(() => {
-    if (!menuOpen) return;
+    const shouldLock = menuOpen || searchOpen;
+    if (!shouldLock) return;
 
     const scrollY = window.scrollY;
     document.body.style.position = 'fixed';
@@ -33,7 +45,7 @@ const Navbar = () => {
       document.body.style.overflow = '';
       window.scrollTo(0, scrollY);
     };
-  }, [menuOpen]);
+  }, [menuOpen, searchOpen]);
 
   return (
     <>
@@ -93,11 +105,12 @@ const Navbar = () => {
           >
             {/* Search */}
             <button
-              className="p-1 hover:opacity-70 transition-opacity duration-300"
+              className={iconButtonClass(activePath === '/search')}
               aria-label="Search"
               id="navbar-search"
+              onClick={() => setSearchOpen(true)}
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" className={activeStroke(activePath === '/search')}>
                 <circle cx="11" cy="11" r="8" />
                 <path d="M21 21l-4.35-4.35" />
               </svg>
@@ -105,11 +118,12 @@ const Navbar = () => {
 
             {/* Account */}
             <button
-              className="p-1 hover:opacity-70 transition-opacity duration-300"
+              className={iconButtonClass(activePath === '/login')}
               aria-label="Account"
               id="navbar-account"
+              onClick={() => navigate('/login')}
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" className={activeStroke(activePath === '/login')}>
                 <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
                 <circle cx="12" cy="7" r="4" />
               </svg>
@@ -117,22 +131,22 @@ const Navbar = () => {
 
             {/* Wishlist */}
             <button
-              className="p-1 hover:opacity-70 transition-opacity duration-300"
+              className={iconButtonClass(activePath === '/wishlist')}
               aria-label="Wishlist"
               id="navbar-wishlist"
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" className={activeStroke(activePath === '/wishlist')}>
                 <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
               </svg>
             </button>
 
             {/* Cart */}
             <button
-              className="p-1 hover:opacity-70 transition-opacity duration-300"
+              className={iconButtonClass(activePath === '/cart')}
               aria-label="Shopping bag"
               id="navbar-cart"
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" className={activeStroke(activePath === '/cart')}>
                 <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
                 <line x1="3" y1="6" x2="21" y2="6" />
                 <path d="M16 10a4 4 0 01-8 0" />
@@ -175,6 +189,10 @@ const Navbar = () => {
         </div>,
         document.body
       )}
+
+      
+
+      <SearchOverlay isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
     </>
   );
 };
